@@ -10,37 +10,33 @@ function wait() {
 
 // tslint:disable:no-unused-expression
 
-describe("Greetings test suite", () => {
+it("Greetings should handle a valid response", async (done) => {
+    const responses = new Map<string, any>();
+    responses.set("greetings/count", "5");
+    responses.set("greetings", [
+        {greeting: "Hello", timestampUtc: new Date(Date.now())},
+        {greeting: "World", timestampUtc: new Date(Date.now())}
+    ]);
+    const httpStub = HttpClientStub.okWithResponseMap(responses);
 
-    it("should handle a valid response", async (done) => {
-        const responses = new Map<string, any>();
-        responses.set("greetings/count", "5");
-        responses.set("greetings", [
-            {greeting: "Hello", timestampUtc: new Date(Date.now())},
-            {greeting: "World", timestampUtc: new Date(Date.now())}
-        ]);
-        const httpStub = HttpClientStub.okWithResponseMap(responses);
+    const sut = new Greetings(httpStub);
 
-        const sut = new Greetings(httpStub);
+    await wait();
+    expect(sut.numberOfSavedGreetings).not.toBeUndefined();
+    expect(sut.numberOfSavedGreetings).toBe("5");
+    expect(sut.savedGreetings).not.toBeUndefined();
+    expect(sut.savedGreetings.length).toBe(2);
+    done();
+});
 
-        await wait();
-        expect(sut.numberOfSavedGreetings).not.toBeUndefined();
-        expect(sut.numberOfSavedGreetings).toBe("5");
-        expect(sut.savedGreetings).not.toBeUndefined();
-        expect(sut.savedGreetings.length).toBe(2);
-        done();
-    });
+it("Greetings should handle an error response", async (done) => {
+    const httpStub = HttpClientStub.error();
+    const sut = new Greetings(httpStub);
 
-    it("should handle an error response", async (done) => {
-        const httpStub = HttpClientStub.error();
-        const sut = new Greetings(httpStub);
-
-        await wait();
-        expect(sut.numberOfSavedGreetings).not.toBeUndefined();
-        expect(sut.numberOfSavedGreetings).toBe("0");
-        expect(sut.savedGreetings).not.toBeUndefined();
-        expect(sut.savedGreetings.length).toBe(0);
-        done();
-    });
-
+    await wait();
+    expect(sut.numberOfSavedGreetings).not.toBeUndefined();
+    expect(sut.numberOfSavedGreetings).toBe("0");
+    expect(sut.savedGreetings).not.toBeUndefined();
+    expect(sut.savedGreetings.length).toBe(0);
+    done();
 });
